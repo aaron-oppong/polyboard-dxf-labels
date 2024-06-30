@@ -8,6 +8,6 @@
 7. Run "*2. Options...*" and set your preferences.
 
 # Labelling Parts
-1. Export PolyBoard project using a DXF Post-Processor of your choice
-2. Open the default export folder 
-3. Run "*1. Labels...*"
+1. Export PolyBoard project using a DXF Post-Processor of your choice.
+2. Open the default export folder.
+3. Run "*1. Labels...*".
