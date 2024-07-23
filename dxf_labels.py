@@ -2,7 +2,7 @@
 # https://github.com/aaron-oppong
 
 import csv, ezdxf, re, json, string, sys
-from ezdxf.math import Vec2
+from ezdxf.math import area, closest_point, Vec2
 from shapely.geometry import Polygon
 
 def get_dictionary(folder, log):
@@ -69,17 +69,17 @@ def poly_to_points(poly):
 
 def label_attribs(outline):
     points = [p.vec2 for p in poly_to_points(outline)]
+
     Poly = Polygon(points)
-    
+
     mx, my = Poly.bounds[2:]
 
     v1, v2 = [Vec2(p) for p in Poly.oriented_envelope.exterior.coords[-3:-1]]
     a = round((v1 - v2).angle_deg, 4) - 45
 
     points += [(points[i] + points[i - 1]) / 2 for i in range(len(points))]
-    norms = [p.magnitude for p in points]
 
-    p0 = points[norms.index(min(norms))]
+    p0 = closest_point(Vec2(0,0), points).vec2
 
     return p0, mx, my, a
 
@@ -97,7 +97,7 @@ def add_label(msp, info, outline, label_height, label_offset):
         else:
             a -= 45
 
-        msp.add_text(text, height=label_height, rotation=a, dxfattribs={'insert': p})
+        msp.add_text(text, height=label_height, rotation=a, dxfattribs={'layer': 'Label', 'insert': p})
 
 if __name__ == '__main__':
     arg = sys.argv
@@ -127,7 +127,7 @@ if __name__ == '__main__':
                 volume_list = []
 
                 for poly in polys:
-                    volume_list.append(Polygon(poly_to_points(poly)).area * abs(poly.dxf.thickness))
+                    volume_list.append(area(poly_to_points(poly)) * abs(poly.dxf.thickness))
 
                 outline = polys[volume_list.index(max(volume_list))]
                 outline_layer = outline.dxf.layer
