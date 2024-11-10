@@ -54,11 +54,11 @@ move /y %new_queue% %queue% >nul
 
 if "%path%" == "%queue_0%" (
     echo Folder path . . .
-    echo %cd%
+    echo "%cd%"
 ) else (
     echo.
     echo Folder path . . .
-    echo %cd%
+    echo "%cd%"
     %timeout% /t 5 /nobreak >nul
 )
 
@@ -79,7 +79,7 @@ for /r %%T in ("*_%report%.txt") do (
 
 call %user_prefs%
 
-%python% "%~dp0dxf_labels.py" "%cd%" %dxf_list% %report_log% %label_height% %label_offset%
+%python% "%~dp0dxf_labels.py" "%cd%" %dxf_list% %report_log% %label_height% %label_offset% %stroke_width%
 
 del /s /q "*.bat" "*%report%.txt" %dxf_list% %report_log% >nul
 
