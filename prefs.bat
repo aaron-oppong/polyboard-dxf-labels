@@ -1,6 +1,8 @@
 @echo off
 title %~nx0
 
+setlocal enabledelayedexpansion
+
 cd /d "%~dp0"
 
 set user_prefs=user_prefs.bat
@@ -10,27 +12,29 @@ echo set python=%python%>%user_prefs%
 echo Current . . .
 echo Label Height: %label_height%
 echo Label Offset: %label_offset%
+echo Stroke Width: %stroke_width%
 
 echo.
 echo Press Enter to skip.
 echo.
 echo New . . .
+goto begin
 
-set /p label_height=Label Height: 
-%python% -c "print(f'{abs(eval('%label_height%')):.4f}')">input.txt 2>nul
+:input
+set current=!%1!
+set /p "%1=%~2: "
+%python% -c "print(f'{abs(eval('!%1!')):.4f}')">input.txt 2>nul
 if errorlevel 1 (
-    echo 0.0000>input.txt
-) 
-set /p label_height=<input.txt
-echo set label_height=%label_height%>>%user_prefs%
+    echo %current%>input.txt
+)
+set /p %1=<input.txt
+echo set %1=!%1!>>%user_prefs%
+exit /b
 
-set /p label_offset=Label Offset: 
-%python% -c "print(f'{abs(eval('%label_offset%')):.4f}')">input.txt 2>nul
-if errorlevel 1 (
-    echo 0.0000>input.txt
-) 
-set /p label_offset=<input.txt
-echo set label_offset=%label_offset%>>%user_prefs%
+:begin
+call :input label_height "Label Height"
+call :input label_offset "Label Offset"
+call :input stroke_width "Stroke Width"
 
 del /q input.txt
 
