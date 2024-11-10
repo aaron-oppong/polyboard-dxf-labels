@@ -1,9 +1,9 @@
 @echo off
 title %~nx0
 
-set python=%localappdata%\Programs\Python\Python312\python.exe
-set pip=%localappdata%\Programs\Python\Python312\Scripts\pip.exe
-set url=https://www.python.org/ftp/python/3.12.4/python-3.12.4-amd64.exe
+set python=%localappdata%\Programs\Python\Python313\python.exe
+set pip=%localappdata%\Programs\Python\Python313\Scripts\pip.exe
+set url=https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe
 
 cd /d "%~dp0"
 
@@ -12,6 +12,7 @@ if not exist %user_prefs% (
     echo set python=%python%>%user_prefs%
     echo set label_height=0.0000>>%user_prefs%
     echo set label_offset=0.0000>>%user_prefs%
+    echo set stroke_width=0.0000>>%user_prefs%
 )
 
 echo Set shortcut = WScript.CreateObject("WScript.Shell").CreateShortcut("%~dp0..\1. Labels....lnk")>create_shortcut.vbs
