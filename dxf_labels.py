@@ -2,8 +2,10 @@
 # https://github.com/aaron-oppong
 
 import csv, ezdxf, re, json, string, sys
-from ezdxf.math import area, closest_point, Vec2
-from shapely.geometry import Polygon
+from ezdxf.math import area, closest_point, Vec2, Vec3, NULLVEC, Z_AXIS
+from shapely.affinity import rotate
+from shapely.geometry import Point, LineString, Polygon
+from shapely.ops import unary_union
 
 def get_dictionary(folder, log):
     log = open(log, 'r')
@@ -14,7 +16,7 @@ def get_dictionary(folder, log):
 
     cabinet_dict = {}
     dictionary = {}
-    
+
     for path in paths:
         path = re.sub(r'^(.*)\n$', r'\1', path)
 
@@ -30,10 +32,10 @@ def get_dictionary(folder, log):
 
         for key in report:
             info = report[key]
-    
+
             cabinet = info['cabinet']
             project = info['project']
-    
+
             if project == '':
                 info['cabinet'] = ''
             else:
@@ -44,13 +46,13 @@ def get_dictionary(folder, log):
                         cabinet_dict[cabinet] = alphabets[len_cabinets]
                     else:
                         cabinet_dict[cabinet] = alphabets[(len_cabinets // 26) - 1] + alphabets[len_cabinets % 26]
-                
+
                 cabinet = cabinet_dict[cabinet]
 
                 info['cabinet'] = cabinet
 
             dictionary[key] = info
-    
+
     if len(cabinet_dict) != 0:
         cabinet_list = open(f'{folder}\\{project}.txt', 'w')
 
@@ -62,60 +64,102 @@ def get_dictionary(folder, log):
     return dictionary
 
 def poly_to_points(poly):
-    try:
-        return list(poly.vertices_in_wcs())
-    except AttributeError:
-        return list(poly.points())
+    ocs = poly.ocs()
 
-def label_attribs(outline):
-    points = [p.vec2 for p in poly_to_points(outline)]
+    if poly.dxftype() == 'POLYLINE':
+        points = poly.points()
+        if poly.is_3d_polyline:
+            points = ocs.points_from_wcs(points)
+    else:
+        points = ocs.points_from_wcs(poly.vertices_in_wcs())
 
-    Poly = Polygon(points)
+    return list(points)
 
-    mx, my = Poly.bounds[2:]
-
-    v1, v2 = [Vec2(p) for p in Poly.oriented_envelope.exterior.coords[-3:-1]]
-    a = round((v1 - v2).angle_deg, 4) - 45
-
-    points += [(points[i] + points[i - 1]) / 2 for i in range(len(points))]
-
-    p0 = closest_point(Vec2(0,0), points).vec2
-
-    return p0, mx, my, a
-
-def add_label(msp, info, outline, label_height, label_offset):
+def add_label(msp, info, outline_area, label_area, stroke_radius, label_offset, label_height, half_label_height):
     text = info['cabinet'] + info['number']
-    
-    p, dx, dy, a = label_attribs(outline)
 
-    if label_offset + label_height <= min(dx, dy):
-        p += label_offset * Vec2(1,1)
+    p1, p2 = [Vec3(p) for p in outline_area.oriented_envelope.exterior.coords[-3:-1]]
 
-        if dx <= dy:
-            p += label_height * Vec2(1,0)
-            a += 45
-        else:
-            a -= 45
+    u1 = (p1 - p2).normalize()
+    u2 = u1.orthogonal(False)
+    u3 = u1 + u2
+
+    a = round(u1.angle_deg, 4)
+
+    v1, v2, v3 = [(label_offset + half_label_height) * u for u in [u1, u2, u3]]
+    v4 = v3.orthogonal(False)
+
+    polys = label_area.geoms if label_area.geom_type == 'MultiPolygon' else [label_area]
+    points = []
+
+    for poly in polys:
+        b_box = poly.oriented_envelope
+
+        if a % 90 != 0:
+            b_box = rotate(b_box, a)
+
+        d = b_box.bounds
+        d = Vec2(d[2:]) - Vec2(d[:2])
+
+        if (label_offset + label_height) <= min(d.x, d.y):
+            q = d.x <= d.y
+
+            exterior_points = [Vec3(p) for p in poly.exterior.coords[:-1]]
+            points += zip(exterior_points, [q] * len(exterior_points))
+            points += [((exterior_points[i] + p) / 2, q) for i, p in enumerate(exterior_points, start=-1)]
+
+            for interior in poly.interiors:
+                interior_points = [Vec3(p) for p in interior.coords[:-1]]
+                points += zip(interior_points, [q] * len(interior_points))
+                points += [((interior_points[i] + p) / 2, q) for i, p in enumerate(interior_points, start=-1)]
+
+    points += [(p[0], True) for p in filter(lambda p: not p[1], points)]
+    new_points = []
+
+    for p, q in points:
+        for v in [v1, v2, v3, v4]:
+            new_points += [(p + v, q), (p - v, q)]
+
+    text_length = len(text)
+    v1, v2 = [(text_length - 1) * label_height * u for u in [u1, u2]]
+
+    points = list(filter(lambda p: label_area.contains((Point(p[0]) if v1 == NULLVEC else LineString([p[0], p[0] + (v1 if p[1] else v2)])).buffer(stroke_radius)), new_points))
+
+    if len(points) != 0:
+        p = closest_point(NULLVEC, list(zip(*points))[0])
+        q = (p, True) in points
+
+        v1, v2, v3 = [half_label_height * u for u in [u1, u2, u3]]
+        v4 = v3.orthogonal(False)
+
+        if not q:
+            a -= 90
+
+        p += v4 if q else v3.reversed()
 
         msp.add_text(text, height=label_height, rotation=a, dxfattribs={'layer': 'Label', 'insert': p})
 
 if __name__ == '__main__':
-    arg = sys.argv
+    arg = sys.argv[1:]
 
-    cd = arg[1]
-    dxf_list = arg[2]
-    report_log = arg[3]
+    cd, dxf_list, report_log = arg[:3]
+    label_height, label_offset, stroke_width = [float(a) for a in arg[3:]]
 
-    label_height = float(arg[4])
-    label_offset = float(arg[5])
-    
     if label_height != 0:
+        half_label_height, quarter_label_height = [label_height / k for k in [2, 4]]
+        stroke_radius = half_label_height + (stroke_width / 2)
+
         file = open(dxf_list, 'r')
 
         dictionary = get_dictionary(cd, report_log)
         current_folder = None
 
         for path, folder, filename in csv.reader(file):
+            try:
+                info = dictionary[filename]
+            except KeyError:
+                continue
+
             doc = ezdxf.readfile(path)
             msp = doc.modelspace()
 
@@ -134,13 +178,27 @@ if __name__ == '__main__':
             except IndexError:
                 continue
 
-            try:
-                info = dictionary[filename]
-            except KeyError:
-                doc.save()
-                continue
+            elevation = outline.dxf.elevation
+            extrusion = outline.dxf.extrusion
+            thickness = abs(outline.dxf.thickness)
 
-            add_label(msp, info, outline, label_height, label_offset)
+            outline_area = Polygon(poly_to_points(outline))
+
+            label_area = outline_area.difference(
+                unary_union(
+                    [LineString([l.dxf.start, l.dxf.end]).buffer(1e-4, cap_style='square') for l in msp.query('LINE').filter(
+                        lambda e: (e.dxf.extrusion.z * Z_AXIS).normalize() == extrusion
+                    )] +
+                    [Polygon(c.vertices(range(0, 360, 5))) for c in msp.query(f'CIRCLE[radius>{quarter_label_height} & thickness!=0]').filter(
+                        lambda e: (e.dxf.extrusion == extrusion) or ((abs(e.dxf.thickness) == thickness) and (e.dxf.extrusion.z + extrusion.z == 0))
+                    )] +
+                    [Polygon(poly_to_points(t)) for t in msp.query('LWPOLYLINE POLYLINE[thickness==0]').union(msp.query(f'LWPOLYLINE POLYLINE[layer!="{outline_layer}" & thickness!=0]').filter(
+                        lambda e: (e.dxf.elevation, e.dxf.extrusion) == (elevation, extrusion)
+                    ))]
+                )
+            )
+
+            add_label(msp, info, outline_area, label_area, stroke_radius, label_offset, label_height, half_label_height)
 
             if folder != current_folder:
                 print(f'\n{re.findall(r'[^\\]+(?=\\$)', folder)[0]}')
@@ -151,5 +209,5 @@ if __name__ == '__main__':
             doc.layers.remove('Defpoints')
 
             doc.save()
-        
+
         file.close()
