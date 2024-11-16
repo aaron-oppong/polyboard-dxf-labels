@@ -1,11 +1,6 @@
 @echo off
 title %~nx0
 
-set choice="%systemroot%\System32\choice.exe"
-set clip="%systemroot%\System32\clip.exe"
-set findstr="%systemroot%\System32\findstr.exe"
-set timeout="%systemroot%\System32\timeout.exe"
-
 set user_prefs="%~dp0user_prefs.bat"
 set new_queue="%~dp0new_queue.txt"
 set queue="%~dp0queue.txt"
@@ -29,8 +24,8 @@ if exist %queue% (
 
 :input
 echo Input folder path . . .
-set /p path=
-cd /d "%path%"
+set /p folder=
+cd /d "%folder%"
 if errorlevel 1 (
     cls
     goto input
@@ -41,25 +36,25 @@ if not exist "%report%.txt" (
 goto begin
 
 :auto
-set /p path=<%queue%
-cd /d "%path%"
+set /p folder=<%queue%
+cd /d "%folder%"
 
 if not exist "%report%.txt" (
     del /q %queue%
     goto end
 )
 
-%findstr% /v /c:"%cd%" %queue% >%new_queue%
+more +1 %queue% >%new_queue%
 move /y %new_queue% %queue% >nul
 
-if "%path%" == "%queue_0%" (
+if "%folder%" == "%queue_0%" (
     echo Folder path . . .
     echo "%cd%"
 ) else (
     echo.
     echo Folder path . . .
     echo "%cd%"
-    %timeout% /t 5 /nobreak >nul
+    timeout /t 5 /nobreak >nul
 )
 
 :begin
@@ -88,10 +83,10 @@ if exist %queue% (
 )
 
 :end
-echo %cd%|%clip%
+echo %cd%| clip
 echo.
 echo Done.
 echo.
 echo Created by Aaron Oppong
 echo https://github.com/aaron-oppong
-%timeout% /t 15 >nul
+timeout /t 15 >nul
