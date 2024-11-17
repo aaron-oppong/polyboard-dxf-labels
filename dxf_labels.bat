@@ -1,6 +1,6 @@
 @echo off
 
-set report=pp_report
+set report=pp_report.txt
 set user_prefs=user_prefs.bat
 
 cd /d "%~dp0"
@@ -67,7 +67,7 @@ echo "Flags"=dword:00000402>>%reg_file%
 echo.>>%reg_file%
 echo [HKEY_CURRENT_USER\SOFTWARE\Boole ^& Partners\PolyBoard 7\Export]>>%reg_file%
 echo "CvtEpsilon"=hex:9a,99,99,99,99,99,a9,3f>>%reg_file%
-echo "ReportFilename"="%report%.txt">>%reg_file%
+echo "ReportFilename"="%report%">>%reg_file%
 echo "ReportFormat"="\"^<f^>\":{\"number\":\"^<num^>\", \"cabinet\":\"^<c^>\", \"project\":\"^<p^>\"}">>%reg_file%
 
 echo.
