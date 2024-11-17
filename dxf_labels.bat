@@ -89,9 +89,6 @@ echo Current . . .
 echo Label Height: %label_height%
 echo Label Offset: %label_offset%
 echo Stroke Width: %stroke_width%
-echo Tool Diameter: %tool_diameter%
-echo Tool Clearance: %tool_clearance%
-echo Minimum Extrusion: %min_extrusion%
 
 echo.
 echo Press Enter to skip.
