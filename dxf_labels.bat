@@ -83,7 +83,10 @@ title Options . . .
 
 setlocal enabledelayedexpansion
 
-echo set python=%python%>%user_prefs%
+set new_user_prefs=new_%user_prefs%
+set user_input=user_input.txt
+
+echo set python=%python%>%new_user_prefs%
 
 echo Current . . .
 echo Label Height: %label_height%
@@ -99,12 +102,12 @@ goto prefs_begin
 :prefs_input
 set current=!%1!
 set /p "%1=%~2: "
-%python% -c "print(f'{abs(eval('!%1!')):.4f}')">input.txt 2>nul
+%python% -c "print(f'{abs(eval('!%1!')):.4f}')">%user_input% 2>nul
 if errorlevel 1 (
-    echo %current%>input.txt
+    echo %current%>%user_input%
 )
-set /p %1=<input.txt
-echo set %1=!%1!>>%user_prefs%
+set /p %1=<%user_input%
+echo set %1=!%1!>>%new_user_prefs%
 exit /b
 
 :prefs_begin
@@ -112,7 +115,8 @@ call :prefs_input label_height "Label Height"
 call :prefs_input label_offset "Label Offset"
 call :prefs_input stroke_width "Stroke Width"
 
-del /q input.txt
+move /y %new_user_prefs% %user_prefs% >nul
+del /q %new_user_prefs% %user_input%
 
 goto end
 
