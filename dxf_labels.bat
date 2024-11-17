@@ -25,14 +25,14 @@ if not exist %user_prefs% (
 
 set shortcut=shortcut.vbs
 echo Set shortcut = WScript.CreateObject("WScript.Shell").CreateShortcut("%~dp0..\1. Labels....lnk")>%shortcut%
-echo shortcut.TargetPath = "%~dp0dxf_processor.bat">>%shortcut%
+echo shortcut.TargetPath = "%~dp0dxf_labels.bat">>%shortcut%
 echo shortcut.Arguments = "-labels">>%shortcut%
 echo shortcut.Save>>%shortcut%
 
 cscript %shortcut% >nul
 
 echo Set shortcut = WScript.CreateObject("WScript.Shell").CreateShortcut("%~dp0..\2. Options....lnk")>%shortcut%
-echo shortcut.TargetPath = "%~dp0dxf_processor.bat">>%shortcut%
+echo shortcut.TargetPath = "%~dp0dxf_labels.bat">>%shortcut%
 echo shortcut.Arguments = "-prefs">>%shortcut%
 echo shortcut.Save>>%shortcut%
 
