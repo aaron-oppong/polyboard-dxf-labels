@@ -1,18 +1,18 @@
 @echo off
 title %~nx0
 
-set user_prefs="%~dp0user_prefs.bat"
-set new_queue="%~dp0new_queue.txt"
-set queue="%~dp0queue.txt"
+set report=pp_report.txt
 
-set report=pp_report
+set queue="%~dp0queue.txt"
+set new_queue="%~dp0new_queue.txt"
+call "%~dp0user_prefs.bat"
 
 cd /d "%~dp0..\"
 
 if exist %queue% (
     del /q %queue%
 )
-for /r %%T in ("%report%.txt") do (
+for /r %%T in ("%report%") do (
     if exist %%T (
         echo %%~dpT>>%queue%
     )
@@ -30,7 +30,7 @@ if errorlevel 1 (
     cls
     goto input
 )
-if not exist "%report%.txt" (
+if not exist "%report%" (
     goto end
 )
 goto begin
@@ -39,7 +39,7 @@ goto begin
 set /p folder=<%queue%
 cd /d "%folder%"
 
-if not exist "%report%.txt" (
+if not exist "%report%" (
     del /q %queue%
     goto end
 )
@@ -68,22 +68,24 @@ for /r %%D in ("*.dxf") do (
 set report_log="%~dp0report_log.txt"
 type nul >%report_log%
 
-for /r %%T in ("*_%report%.txt") do (
+for /r %%T in ("*_%report%") do (
     echo %%~dpnT>>%report_log%
 )
 
-call %user_prefs%
-
 %python% "%~dp0dxf_labels.py" "%cd%" %dxf_list% %report_log% %label_height% %label_offset% %stroke_width%
+if errorlevel 1 (
+    pause >nul
+    exit /b
+)
 
-del /s /q "*.bat" "*%report%.txt" %dxf_list% %report_log% >nul
+del /s /q "*%report%" %dxf_list% %report_log% >nul
 
 if exist %queue% (
     goto auto
 )
 
 :end
-echo %cd%| clip
+echo %cd%|clip
 echo.
 echo Done.
 echo.
