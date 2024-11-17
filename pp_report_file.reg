@@ -1,9 +1,0 @@
-﻿Windows Registry Editor Version 5.00
-
-[HKEY_CURRENT_USER\SOFTWARE\Boole & Partners\PolyBoard 7\Cutting List]
-"Flags"=dword:00000402
-
-[HKEY_CURRENT_USER\SOFTWARE\Boole & Partners\PolyBoard 7\Export]
-"CvtEpsilon"=hex:9a,99,99,99,99,99,a9,3f
-"ReportFilename"="pp_report.txt"
-"ReportFormat"="\"<f>\":{\"number\":\"<num>\", \"cabinet\":\"<c>\", \"project\":\"<p>\"}"
