@@ -3,7 +3,7 @@
 2. Unzip the file.
 3. Move the enclosing folder to your default export folder.
 4. Open the enclosing folder.
-5. Run "`polyboard_dxf_labels.bat`" as adminstrator.
+5. Run "`polyboard_dxf_labels.bat`" as administrator.
 6. Return to the default export folder.
 7. Run "*2. Options...*" and set your preferences.
 
