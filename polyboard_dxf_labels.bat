@@ -12,18 +12,19 @@ title Setup . . .
 cd /d "%~dp0"
 
 set installer=python_installer.exe
+set version=3.13.0
 
 py -V >nul 2>nul
 if not %errorlevel% == 0 (
     echo Downloading python . . .
-    curl -# -o %installer% https://www.python.org/ftp/python/3.13.0/python-3.13.0-amd64.exe
+    curl -# -o %installer% https://www.python.org/ftp/python/%version%/python-%version%-amd64.exe
     echo.
     echo Starting installer . . .
     %installer% /passive PrependPath=1
     del /q %installer%
     echo Installation complete.
     echo.
-    "%localappdata%\Programs\Python\Python313\Scripts\pip.exe" install ezdxf shapely
+    "%localappdata%\Programs\Python\Python%version:~0,1%%version:~2,2%\Scripts\pip.exe" install ezdxf shapely
     exit /b
 ) else (
     py -m pip install ezdxf shapely
