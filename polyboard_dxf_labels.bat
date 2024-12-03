@@ -24,7 +24,7 @@ if not %errorlevel% == 0 (
     del /q %installer%
     echo Installation complete.
     echo.
-    "%localappdata%\Programs\Python\Python%version:~0,1%%version:~2,2%\Scripts\pip.exe" install ezdxf shapely
+    "%windir%\py.exe" -m pip install ezdxf shapely
     exit /b
 ) else (
     py -m pip install ezdxf shapely
