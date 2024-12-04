@@ -12,7 +12,7 @@ title Setup . . .
 cd /d "%~dp0"
 
 set installer=python_installer.exe
-set version=3.13.0
+set version=3.13.1
 
 py -V >nul 2>nul
 if not %errorlevel% == 0 (
