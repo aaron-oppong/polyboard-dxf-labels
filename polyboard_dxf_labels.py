@@ -139,7 +139,7 @@ def add_label(msp, info, outline_area, label_area, stroke_radius, label_offset, 
 
         msp.add_text(text, height=label_height, rotation=a, dxfattribs={'layer': 'Label', 'insert': p})
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     arg = sys.argv[1:]
 
     if len(arg) == 0:
