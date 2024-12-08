@@ -3,7 +3,7 @@
 
 import json
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     path = 'user_prefs.json'
 
     with open(path, 'r') as file:
