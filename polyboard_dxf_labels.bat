@@ -86,8 +86,8 @@ goto end
 :-labels
 title Labels . . .
 
-set queue="%~dp0queue.txt"
-set new_queue="%~dp0new_queue.txt"
+set queue="%~dp0queue.log"
+set new_queue="%~dp0new_queue.log"
 
 cd /d "%~dp0..\"
 
@@ -147,7 +147,7 @@ for /r %%D in ("*.dxf") do (
     echo %%~D,%%~dpD,%%~nxD>>%dxf_list%
 )
 
-set report_log="%~dp0report_log.txt"
+set report_log="%~dp0report_list.log"
 type nul >%report_log%
 
 for /r %%T in ("*_%report%") do (
