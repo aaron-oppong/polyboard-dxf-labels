@@ -1,10 +1,10 @@
 # Created by Aaron Oppong
 # https://github.com/aaron-oppong
 
-import json
+import json, sys
 
 if __name__ == '__main__':
-    path = 'user_prefs.json'
+    path = sys.argv[1]
 
     with open(path, 'r') as file:
         prefs = json.load(file)
