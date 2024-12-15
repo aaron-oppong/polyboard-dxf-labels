@@ -79,7 +79,7 @@ goto end
 :-prefs
 title Options . . .
 
-py "%~dpn0%1.py"
+py "%~dpn0%1.py" %user_prefs%
 
 goto end
 
